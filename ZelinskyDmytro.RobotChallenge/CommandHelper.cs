@@ -18,7 +18,7 @@ namespace ZelinskyDmytro.RobotChallenge
                 if(movingRobot.OwnerName != enemyRobot.OwnerName &&
                     CheckHelper.IsRobotInRadius(radiusToCollectEnergy, posToDefend, enemyRobot))
                 {
-                    //add robot with enemy  robor growth
+                    //add robot with enemy  robot growth
                     teamRobotCount = CheckHelper.CountTeamRobotsInArea(radiusToCollectEnergy, enemyRobot.Position, movingRobot, robots);
                     if (teamRobotCount >= 1)
                     {
@@ -38,27 +38,31 @@ namespace ZelinskyDmytro.RobotChallenge
 
         public static RobotCommand SpanishExpansion(Robot.Common.Robot movingRobot, Map map, IList<Robot.Common.Robot> robots)
         {
-            int distance = radiusToCollectEnergy + 1;
-            int teamRobotsCount = 0;
+            //int distance = radiusToCollectEnergy + 1;
+            int teamRobotsCount;
+            int enemyRobotCount;
             List<EnergyStation> stations;
             bool isTeamOccupied = false;
             var nearestStationPos = DistanceHelper.FindNearestStation(movingRobot, map);
-            for(int i = 0; i < 10; i++)
+            for(int distance = radiusToCollectEnergy + 1; distance < 15; distance++)
             {
                 stations = map.GetNearbyResources(movingRobot.Position, distance);
                 if (stations.Count == 0)
                 {
-                    distance++;
                     continue;
                 }
                 foreach (var station in stations)
                 {
+
                     if (nearestStationPos == station.Position) continue;
                     teamRobotsCount = CheckHelper.CountTeamRobotsInArea(radiusToCollectEnergy - 1, station.Position, movingRobot, robots);
+                    enemyRobotCount = CheckHelper.CountEnemyRobotsInArea(radiusToCollectEnergy - 1, station.Position, movingRobot, robots);
+
                     if (teamRobotsCount >= 1)
                     {
                         isTeamOccupied = true;
                     }
+                   
                     else
                     {
                         isTeamOccupied = false;
@@ -74,11 +78,8 @@ namespace ZelinskyDmytro.RobotChallenge
                         return new CollectEnergyCommand();
                     }
                 }
-                distance++;
-
             }
             return new CollectEnergyCommand();
-
 
         }
         public static RobotCommand KnockEnemy(Robot.Common.Robot moving, Robot.Common.Robot enemyRobot)
@@ -89,6 +90,19 @@ namespace ZelinskyDmytro.RobotChallenge
             }
             else
                 return new CollectEnergyCommand();
+        }
+        public static RobotCommand GoToProfitablePlace(Robot.Common.Robot movingRobot, Map map, IList<Robot.Common.Robot> robots)
+        {
+            var nearestFreeStation =  DistanceHelper.FindNearestFreeRadiusStation(radiusToCollectEnergy, movingRobot, map, robots);
+            if(DistanceHelper.FindDistance(movingRobot.Position, nearestFreeStation.Position) > movingRobot.Energy)
+            {
+                return DefendPositionOrCollectEnergy(movingRobot.Position,movingRobot,robots);
+            }
+            else
+            {
+                return new MoveCommand() { NewPosition = DistanceHelper.FindNearestFreePointInRadius(radiusToCollectEnergy, nearestFreeStation.Position, movingRobot, robots) };
+            }
+
         }
     }
 }

@@ -9,11 +9,18 @@ namespace ZelinskyDmytro.RobotChallenge
 {
     static class CheckHelper
     {
-
+        static readonly int radiusToCollectEnergy = 3;
         public static bool IsStationFree(EnergyStation station, Robot.Common.Robot movingRobot,
         IList<Robot.Common.Robot> robots)
         {
             return IsCellFree(station.Position, movingRobot, robots);
+        }
+        public static bool IsStationFreeInRadius(int radius, EnergyStation station, Robot.Common.Robot movingRobot, IList<Robot.Common.Robot> robots)
+        {
+            int allRobots;
+            allRobots = CountTeamRobotsInArea(radiusToCollectEnergy, station.Position, movingRobot, robots);
+            allRobots += CountEnemyRobotsInArea(radiusToCollectEnergy, station.Position, movingRobot, robots);
+            return allRobots == 0 ? true : false;
         }
 
         public static bool IsCellFree(Position cell, Robot.Common.Robot movingRobot, IList<Robot.Common.Robot> robots)
