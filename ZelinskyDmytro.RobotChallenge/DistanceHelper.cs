@@ -93,7 +93,8 @@ namespace ZelinskyDmytro.RobotChallenge
                 if (CheckHelper.IsStationFreeInRadius(radius, station, movingRobot, robots))
                 {
                     var newDistance = DistanceHelper.FindDistance(movingRobot.Position, station.Position);
-                    if (newDistance < distance)
+                    if (newDistance < distance
+                        && !CheckHelper.IsRobotInRadius(radius, station.Position, movingRobot))
                     {
                         nearestFreeStation = station;
                         distance = newDistance;
@@ -115,7 +116,9 @@ namespace ZelinskyDmytro.RobotChallenge
             foreach (var station in stations)
             {
                 newDistance = DistanceHelper.FindDistance(movingRobot.Position, station.Position);
-                if (CheckHelper.IsStationFreeInRadius(radiusToCollect, station, movingRobot, robots) && newDistance < distance)
+                if (CheckHelper.IsStationFreeInRadius(radiusToCollect, station, movingRobot, robots)
+                    && newDistance < distance
+                    && !CheckHelper.IsRobotInRadius(radiusToCollect, station.Position, movingRobot))
                 {
                     nearestStation = station;
                     distance = newDistance;

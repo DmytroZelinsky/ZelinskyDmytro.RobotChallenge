@@ -101,9 +101,6 @@ namespace ZelinskyDmytro.RobotChallenge
             }
             if(DistanceHelper.FindDistance(movingRobot.Position, nearestFreeStation.Position) > movingRobot.Energy)
             {
-                if (DistanceHelper.FindDistance(movingRobot.Position, nearestFreeStation.Position) / 2 >
-                    movingRobot.Energy)
-                    return DefendPositionOrCollectEnergy(movingRobot.Position, movingRobot, robots);
                 return CommandHelper.GoToIntermediatePosition(movingRobot, nearestFreeStation.Position, robots);
             }
             else
@@ -115,21 +112,29 @@ namespace ZelinskyDmytro.RobotChallenge
 
         public static RobotCommand GoToIntermediatePosition(Robot.Common.Robot movingRobot, Position endPos, IList<Robot.Common.Robot> robots)
         {
-            int distance = DistanceHelper.FindDistance(movingRobot.Position, endPos);
-            double segments = 1;
-            int x1, y1;
-            Position intermediatePos = endPos;
-            do
-            {
-                x1 = (int)((movingRobot.Position.X + endPos.X * segments) / (segments + 1));
-                y1 = (int)((movingRobot.Position.Y + endPos.Y * segments) / (segments + 1));
-                intermediatePos.X = x1;
-                intermediatePos.Y = y1;
-                ++segments;
-            }
-            while (movingRobot.Energy <= DistanceHelper.FindDistance(movingRobot.Position, intermediatePos) && segments < 10);
+            int requiredEnergy = DistanceHelper.FindDistance(movingRobot.Position, endPos) + 20;
+            int robotEnergy = movingRobot.Energy;
+            int distance = (int)(Math.Sqrt(requiredEnergy));
+            int segments = 1;
+            Position posToGo = new Position();
 
-            return new MoveCommand() { NewPosition = intermediatePos };
+            while(robotEnergy < requiredEnergy)
+            {
+                ++segments;
+                requiredEnergy = (int)(segments * Math.Pow(distance / (segments * 1.0), 2)) + 20;
+                if(segments > 8)
+                {
+                    return DefendPositionOrCollectEnergy(movingRobot.Position, movingRobot, robots);
+                }
+            }
+            if(segments == 1)
+            {
+                return new MoveCommand() { NewPosition = posToGo };
+            }
+            posToGo.X = (int)((endPos.X + movingRobot.Position.X * (segments - 1)) / (segments * 1.0));
+            posToGo.Y = (int)((endPos.Y + movingRobot.Position.Y * (segments - 1)) / (segments * 1.0));
+            return new MoveCommand() { NewPosition = posToGo };
+
         }
     }
 }

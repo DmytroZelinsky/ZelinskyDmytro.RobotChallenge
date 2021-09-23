@@ -53,28 +53,19 @@ namespace ZelinskyDmytro.RobotChallenge
                 }
                 else
                 {
-                    if (CheckHelper.CountEnemyRobotsInArea(7, movingRobot.Position, movingRobot, robots) == 0
-                        && DistanceHelper.FindFreeStationInRadius(7, radiusToCollectEnergy, movingRobot, map, robots) == null
-                        && CheckHelper.CountTeamRobotsInArea(3, nearestStationPos, movingRobot, robots) > 0)
+                    if (movingRobot.Energy > 200
+                        && teamRobotNearbyCount < 1
+                        && allTeamRobotCount < 100
+                        && (CheckHelper.CountEnemyRobotsInArea(5, movingRobot.Position, movingRobot, robots) > 0
+                        || DistanceHelper.FindFreeStationInRadius(30, radiusToCollectEnergy, movingRobot,map,robots) != null)
+                        )
                     {
-                        return CommandHelper.GoToProfitablePlace(movingRobot, map, robots);
+                        return new CreateNewRobotCommand() { NewRobotEnergy = 150};
                     }
                     else
                     {
-                        if (movingRobot.Energy > 200
-                            && teamRobotNearbyCount < 1
-                            && allTeamRobotCount < 100
-                            && (CheckHelper.CountEnemyRobotsInArea(7, movingRobot.Position, movingRobot, robots) > 0
-                            || DistanceHelper.FindFreeStationInRadius(7, radiusToCollectEnergy, movingRobot,map,robots) != null)
-                            )
-                        {
-                            return new CreateNewRobotCommand() { NewRobotEnergy = 150};
-                        }
-                        else
-                        {
-                            return CommandHelper.DefendPositionOrCollectEnergy(newPos, movingRobot, robots);
-                        }
-                    }
+                        return CommandHelper.DefendPositionOrCollectEnergy(newPos, movingRobot, robots);
+                    }     
                 }
             } 
             else
