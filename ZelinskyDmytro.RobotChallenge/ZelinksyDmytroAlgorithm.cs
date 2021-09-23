@@ -28,7 +28,7 @@ namespace ZelinskyDmytro.RobotChallenge
 
             nearestStationPos = DistanceHelper.FindNearestStation(movingRobot, map);
             var newPos = DistanceHelper.FindNearestFreePointInRadius(radiusToCollectEnergy - 1, nearestStationPos, movingRobot, robots);
-            int teamRobotNearbyCount = CheckHelper.CountTeamRobotsInArea(radiusToCollectEnergy, nearestStationPos, movingRobot, robots);
+            int teamRobotNearbyCount = CheckHelper.CountTeamRobotsInArea(radiusToCollectEnergy, movingRobot.Position, movingRobot, robots);
             int enemyRobotNearbyCount = CheckHelper.CountEnemyRobotsInArea(radiusToCollectEnergy - 1, nearestStationPos, movingRobot, robots);
 
             if (CheckHelper.IsRobotInRadius(radiusToCollectEnergy, nearestStationPos, movingRobot))
@@ -53,18 +53,19 @@ namespace ZelinskyDmytro.RobotChallenge
                 }
                 else
                 {
-                    if (CheckHelper.CountEnemyRobotsInArea(10, movingRobot.Position, movingRobot, robots) == 0
-                        && DistanceHelper.FindNearestFreeRadiusStation(10, movingRobot, map, robots) == null)
+                    if (CheckHelper.CountEnemyRobotsInArea(7, movingRobot.Position, movingRobot, robots) == 0
+                        && DistanceHelper.FindFreeStationInRadius(7, radiusToCollectEnergy, movingRobot, map, robots) == null
+                        && CheckHelper.CountTeamRobotsInArea(3, nearestStationPos, movingRobot, robots) > 0)
                     {
                         return CommandHelper.GoToProfitablePlace(movingRobot, map, robots);
                     }
                     else
                     {
-                        double coef = 1000 * (((1 + _roundNumber) * 0.03));
-                        if (movingRobot.Energy > 200 &&
-                            teamRobotNearbyCount < 1
-                            //&& map.GetNearbyResources(currentRobot.Position,7).Count != 0 
-                            //&& CheckHelper.CountEnemyRobotsInArea(10,currentRobot.Position,currentRobot,robots) > 0
+                        if (movingRobot.Energy > 200
+                            && teamRobotNearbyCount < 1
+                            && allTeamRobotCount < 100
+                            && (CheckHelper.CountEnemyRobotsInArea(7, movingRobot.Position, movingRobot, robots) > 0
+                            || DistanceHelper.FindFreeStationInRadius(7, radiusToCollectEnergy, movingRobot,map,robots) != null)
                             )
                         {
                             return new CreateNewRobotCommand() { NewRobotEnergy = 150};
@@ -75,10 +76,10 @@ namespace ZelinskyDmytro.RobotChallenge
                         }
                     }
                 }
-        } 
+            } 
             else
             {
-                return new MoveCommand() { NewPosition = newPos };
+                return CommandHelper.GoToProfitablePlace(movingRobot, map, robots);
             }
 
         }

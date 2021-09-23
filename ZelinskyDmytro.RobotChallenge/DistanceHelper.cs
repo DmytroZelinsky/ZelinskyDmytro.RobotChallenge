@@ -102,6 +102,28 @@ namespace ZelinskyDmytro.RobotChallenge
             }
             return nearestFreeStation;
         }
+
+
+
+        public static EnergyStation FindFreeStationInRadius(int radiusToFind, int radiusToCollect, Robot.Common.Robot movingRobot,
+            Map map, IList<Robot.Common.Robot> robots)
+        {
+            var stations = map.GetNearbyResources(movingRobot.Position, radiusToFind);
+            int distance = int.MaxValue;
+            int newDistance;
+            EnergyStation nearestStation = null;
+            foreach (var station in stations)
+            {
+                newDistance = DistanceHelper.FindDistance(movingRobot.Position, station.Position);
+                if (CheckHelper.IsStationFreeInRadius(radiusToCollect, station, movingRobot, robots) && newDistance < distance)
+                {
+                    nearestStation = station;
+                    distance = newDistance;
+                }
+            }
+
+            return nearestStation;
+        }
     }
    
 

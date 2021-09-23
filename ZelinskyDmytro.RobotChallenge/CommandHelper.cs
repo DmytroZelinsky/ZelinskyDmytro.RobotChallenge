@@ -12,6 +12,7 @@ namespace ZelinskyDmytro.RobotChallenge
         static readonly int radiusToCollectEnergy = 3;
         public static RobotCommand DefendPositionOrCollectEnergy(Position posToDefend, Robot.Common.Robot movingRobot, IList<Robot.Common.Robot> robots)
         {
+            int allTeamRobotsCount = robots.Where(x => x.OwnerName == movingRobot.OwnerName).Count();
             int teamRobotCount;
             foreach (var enemyRobot in robots)
             {
@@ -26,7 +27,7 @@ namespace ZelinskyDmytro.RobotChallenge
                     }
                     else
                     {
-                        if (movingRobot.Energy > 100)
+                        if (movingRobot.Energy > 100 && allTeamRobotsCount < 100)
                         {
                             return new CreateNewRobotCommand() { NewRobotEnergy = 50};
                         }
@@ -93,16 +94,42 @@ namespace ZelinskyDmytro.RobotChallenge
         }
         public static RobotCommand GoToProfitablePlace(Robot.Common.Robot movingRobot, Map map, IList<Robot.Common.Robot> robots)
         {
-            var nearestFreeStation =  DistanceHelper.FindNearestFreeRadiusStation(radiusToCollectEnergy, movingRobot, map, robots);
-            if(DistanceHelper.FindDistance(movingRobot.Position, nearestFreeStation.Position) > movingRobot.Energy)
+            var nearestFreeStation =  DistanceHelper.FindNearestFreeRadiusStation(radiusToCollectEnergy + 2, movingRobot, map, robots);
+            if (nearestFreeStation == null)
             {
                 return DefendPositionOrCollectEnergy(movingRobot.Position,movingRobot,robots);
             }
+            if(DistanceHelper.FindDistance(movingRobot.Position, nearestFreeStation.Position) > movingRobot.Energy)
+            {
+                if (DistanceHelper.FindDistance(movingRobot.Position, nearestFreeStation.Position) / 2 >
+                    movingRobot.Energy)
+                    return DefendPositionOrCollectEnergy(movingRobot.Position, movingRobot, robots);
+                return CommandHelper.GoToIntermediatePosition(movingRobot, nearestFreeStation.Position, robots);
+            }
             else
             {
-                return new MoveCommand() { NewPosition = DistanceHelper.FindNearestFreePointInRadius(radiusToCollectEnergy, nearestFreeStation.Position, movingRobot, robots) };
+                return new MoveCommand { NewPosition = DistanceHelper.FindNearestFreePointInRadius(radiusToCollectEnergy - 1, nearestFreeStation.Position, movingRobot, robots) };
             }
 
+        }
+
+        public static RobotCommand GoToIntermediatePosition(Robot.Common.Robot movingRobot, Position endPos, IList<Robot.Common.Robot> robots)
+        {
+            int distance = DistanceHelper.FindDistance(movingRobot.Position, endPos);
+            double segments = 1;
+            int x1, y1;
+            Position intermediatePos = endPos;
+            do
+            {
+                x1 = (int)((movingRobot.Position.X + endPos.X * segments) / (segments + 1));
+                y1 = (int)((movingRobot.Position.Y + endPos.Y * segments) / (segments + 1));
+                intermediatePos.X = x1;
+                intermediatePos.Y = y1;
+                ++segments;
+            }
+            while (movingRobot.Energy <= DistanceHelper.FindDistance(movingRobot.Position, intermediatePos) && segments < 10);
+
+            return new MoveCommand() { NewPosition = intermediatePos };
         }
     }
 }
